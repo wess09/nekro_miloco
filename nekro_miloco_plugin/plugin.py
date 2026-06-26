@@ -37,7 +37,7 @@ from .state import (
 
 plugin = NekroPlugin(
     name="Nekro Miloco Bridge",
-    module_name="nekro_miloco_plugin",
+    module_name="miloco",
     description="通过已部署的 miloco-backend 桥接小米智能家居、感知事件和只读身份查询。",
     version="0.1.0",
     author="nekro_miloco",
