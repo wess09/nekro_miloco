@@ -7,11 +7,20 @@ def summarize_home(data: dict[str, Any] | None, *, limit: int = 40) -> str:
     if not isinstance(data, dict):
         return "miloco home 信息不可用。"
     home_name = data.get("home_name") or data.get("name") or "未命名家庭"
+    rooms = _collect_rooms(data)
     devices = _as_list(data.get("devices"))
     scenes = _as_list(data.get("scenes"))
     persons = _as_list(data.get("persons"))
 
     lines = [f"miloco 当前家庭: {home_name}"]
+    if rooms:
+        lines.append("房间目录:")
+        for item in rooms[:limit]:
+            room_id = item.get("room_id") or item.get("id") or "-"
+            room_name = item.get("room_name") or item.get("name") or "未命名房间"
+            lines.append(f"- {room_name} | room_id={room_id}")
+        if len(rooms) > limit:
+            lines.append(f"- ... 还有 {len(rooms) - limit} 个房间")
     if devices:
         lines.append("设备目录:")
         for item in devices[:limit]:
@@ -77,3 +86,20 @@ def compact_json(data: Any, *, max_chars: int = 4000) -> str:
 def _as_list(value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
 
+
+def _collect_rooms(data: dict[str, Any]) -> list[dict[str, Any]]:
+    rooms = _as_list(data.get("rooms"))
+    if rooms:
+        return [item for item in rooms if isinstance(item, dict)]
+
+    homes = _as_list(data.get("homes"))
+    collected: list[dict[str, Any]] = []
+    for home in homes:
+        if not isinstance(home, dict):
+            continue
+        room_list = home.get("room_list")
+        if isinstance(room_list, dict):
+            collected.extend(item for item in room_list.values() if isinstance(item, dict))
+        else:
+            collected.extend(item for item in _as_list(room_list) if isinstance(item, dict))
+    return collected
